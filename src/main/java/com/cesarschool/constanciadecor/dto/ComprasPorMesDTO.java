@@ -2,18 +2,26 @@ package com.cesarschool.constanciadecor.dto;
 
 public class ComprasPorMesDTO {
     private String mes;
-    private int total;
+    private double media;
 
-    public ComprasPorMesDTO() {}
-
-    public ComprasPorMesDTO(String mes, int total) {
+    public ComprasPorMesDTO(String mes, double media) {
         this.mes = mes;
-        this.total = total;
+        this.media = media;
     }
 
-    public String getMes() { return mes; }
-    public void setMes(String mes) { this.mes = mes; }
+    public String getMes() {
+        return mes;
+    }
 
-    public int getTotal() { return total; }
-    public void setTotal(int total) { this.total = total; }
+    public void setMes(String mes) {
+        this.mes = mes;
+    }
+
+    public double getMedia() {
+        return media;
+    }
+
+    public void setMedia(double media) {
+        this.media = media;
+    }
 }

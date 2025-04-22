@@ -1,53 +1,78 @@
 package com.cesarschool.constanciadecor.model;
 
-import java.time.LocalDate;
+import java.sql.Date;
 
 public class CompraAvalia {
     private int numero;
-    private LocalDate data;
-    private double valorTotal;
+    private Date data_compra;
+    private Date data_avaliacao;
+    private double valor_total;
     private String avaliacao;
     private int nota;
-    private String cpfCliente;
-    private int codigoProduto;
-    private int codigoCupom;
+    private String cpf_cliente;
+    private Integer codigo_cupom; // Pode ser null
 
-    public CompraAvalia() {}
-
-    public CompraAvalia(int numero, LocalDate data, double valorTotal, String avaliacao, int nota,
-                        String cpfCliente, int codigoProduto, int codigoCupom) {
-        this.numero = numero;
-        this.data = data;
-        this.valorTotal = valorTotal;
-        this.avaliacao = avaliacao;
-        this.nota = nota;
-        this.cpfCliente = cpfCliente;
-        this.codigoProduto = codigoProduto;
-        this.codigoCupom = codigoCupom;
+    public int getNumero() {
+        return numero;
     }
 
-    // Getters e Setters
-    public int getNumero() { return numero; }
-    public void setNumero(int numero) { this.numero = numero; }
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
 
-    public LocalDate getData() { return data; }
-    public void setData(LocalDate data) { this.data = data; }
+    public Date getData_compra() {
+        return data_compra;
+    }
 
-    public double getValorTotal() { return valorTotal; }
-    public void setValorTotal(double valorTotal) { this.valorTotal = valorTotal; }
+    public void setData_compra(Date data_compra) {
+        this.data_compra = data_compra;
+    }
 
-    public String getAvaliacao() { return avaliacao; }
-    public void setAvaliacao(String avaliacao) { this.avaliacao = avaliacao; }
+    public Date getData_avaliacao() {
+        return data_avaliacao;
+    }
 
-    public int getNota() { return nota; }
-    public void setNota(int nota) { this.nota = nota; }
+    public void setData_avaliacao(Date data_avaliacao) {
+        this.data_avaliacao = data_avaliacao;
+    }
 
-    public String getCpfCliente() { return cpfCliente; }
-    public void setCpfCliente(String cpfCliente) { this.cpfCliente = cpfCliente; }
+    public double getValor_total() {
+        return valor_total;
+    }
 
-    public int getCodigoProduto() { return codigoProduto; }
-    public void setCodigoProduto(int codigoProduto) { this.codigoProduto = codigoProduto; }
+    public void setValor_total(double valor_total) {
+        this.valor_total = valor_total;
+    }
 
-    public int getCodigoCupom() { return codigoCupom; }
-    public void setCodigoCupom(int codigoCupom) { this.codigoCupom = codigoCupom; }
+    public String getAvaliacao() {
+        return avaliacao;
+    }
+
+    public void setAvaliacao(String avaliacao) {
+        this.avaliacao = avaliacao;
+    }
+
+    public int getNota() {
+        return nota;
+    }
+
+    public void setNota(int nota) {
+        this.nota = nota;
+    }
+
+    public String getCpf_cliente() {
+        return cpf_cliente;
+    }
+
+    public void setCpf_cliente(String cpf_cliente) {
+        this.cpf_cliente = cpf_cliente;
+    }
+
+    public Integer getCodigo_cupom() {
+        return codigo_cupom;
+    }
+
+    public void setCodigo_cupom(Integer codigo_cupom) {
+        this.codigo_cupom = codigo_cupom;
+    }
 }

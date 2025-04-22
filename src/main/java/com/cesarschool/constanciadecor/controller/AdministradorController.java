@@ -16,7 +16,6 @@ public class AdministradorController {
 
     private final AdministradorAromasDAO dao = new AdministradorAromasDAO();
 
-    // POST: cadastrar um novo administrador
     @PostMapping
     public ResponseEntity<String> adicionar(@RequestBody AdministradorAromas adm) {
         try {
@@ -27,18 +26,24 @@ public class AdministradorController {
         }
     }
 
-    // GET: listar todos os administradores
     @GetMapping
     public ResponseEntity<List<AdministradorAromas>> listar() {
         try {
-            List<AdministradorAromas> lista = dao.getAllAdministradores();
-            return ResponseEntity.ok(lista);
+            return ResponseEntity.ok(dao.getAllAdministradores());
         } catch (SQLException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // GET: buscar administrador por CPF
+    @GetMapping("/ativos")
+    public ResponseEntity<List<AdministradorAromas>> listarAtivos() {
+        try {
+            return ResponseEntity.ok(dao.listarAtivos());
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/{cpf}")
     public ResponseEntity<AdministradorAromas> buscar(@PathVariable String cpf) {
         try {
@@ -53,7 +58,6 @@ public class AdministradorController {
         }
     }
 
-    // PUT: atualizar dados de um administrador
     @PutMapping
     public ResponseEntity<String> atualizar(@RequestBody AdministradorAromas adm) {
         try {
@@ -64,14 +68,23 @@ public class AdministradorController {
         }
     }
 
-    // DELETE: excluir administrador pelo CPF
-    @DeleteMapping("/{cpf}")
-    public ResponseEntity<String> deletar(@PathVariable String cpf) {
+    @PutMapping("/desativar/{cpf}")
+    public ResponseEntity<String> desativar(@PathVariable String cpf) {
         try {
-            dao.deleteAdministrador(cpf);
-            return ResponseEntity.ok("Administrador excluído com sucesso!");
+            dao.desativarAdministrador(cpf);
+            return ResponseEntity.ok("Administrador desativado com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao excluir: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao desativar: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/ativar/{cpf}")
+    public ResponseEntity<String> ativar(@PathVariable String cpf) {
+        try {
+            dao.ativarAdministrador(cpf);
+            return ResponseEntity.ok("Administrador ativado com sucesso!");
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao ativar: " + e.getMessage());
         }
     }
 }

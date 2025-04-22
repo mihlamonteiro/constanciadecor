@@ -1,12 +1,10 @@
 package com.cesarschool.constanciadecor.controller;
 
-import com.cesarschool.constanciadecor.dto.CompraDetalhadaDTO;
-import com.cesarschool.constanciadecor.dto.ComprasPorMesDTO;
 import com.cesarschool.constanciadecor.DAO.CompraAvaliaDAO;
 import com.cesarschool.constanciadecor.model.CompraAvalia;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.cesarschool.constanciadecor.dto.MediaAvaliacaoMensalDTO;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -28,6 +26,16 @@ public class CompraAvaliaController {
         }
     }
 
+    @PutMapping("/avaliar/{numero}")
+    public ResponseEntity<String> avaliar(@PathVariable int numero, @RequestBody CompraAvalia dados) {
+        try {
+            dao.avaliarCompra(numero, dados);
+            return ResponseEntity.ok("Avaliação registrada com sucesso!");
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().body("Erro ao avaliar: " + e.getMessage());
+        }
+    }
+
     @GetMapping
     public ResponseEntity<List<CompraAvalia>> listarTodas() {
         try {
@@ -36,11 +44,10 @@ public class CompraAvaliaController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    @GetMapping("/cliente/{cpf}")
-    public ResponseEntity<List<CompraDetalhadaDTO>> listarComprasPorCliente(@PathVariable String cpf) {
+    @GetMapping("/dashboard/avaliacoes-por-mes")
+    public ResponseEntity<List<MediaAvaliacaoMensalDTO>> mediaAvaliacoesPorMes(@RequestParam int ano) {
         try {
-            List<CompraDetalhadaDTO> compras = dao.listarComprasPorCliente(cpf);
-            return ResponseEntity.ok(compras);
+            return ResponseEntity.ok(dao.getMediaAvaliacoesPorMes(ano));
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -56,16 +63,6 @@ public class CompraAvaliaController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
-    @GetMapping("/dashboard/compras-por-mes")
-    public ResponseEntity<List<ComprasPorMesDTO>> comprasPorMes() {
-        try {
-            return ResponseEntity.ok(dao.getComprasPorMes());
-        } catch (SQLException e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
 
     @DeleteMapping("/{numero}")
     public ResponseEntity<String> deletar(@PathVariable int numero) {

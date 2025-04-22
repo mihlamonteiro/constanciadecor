@@ -4,58 +4,38 @@ import com.cesarschool.constanciadecor.config.DatabaseConnection;
 import com.cesarschool.constanciadecor.model.Funcionario;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FuncionarioDAO {
 
-    public void addFuncionario(Funcionario func) throws SQLException {
-        String sql = "INSERT INTO Funcionario (cpf, nome, cargo, data_nasc, telefone, cep, bairro, numero, rua, cpf_administrador) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public void addFuncionario(Funcionario f) throws SQLException {
+        String sql = "INSERT INTO funcionario (cpf, nome, cargo, data_nasc, telefone, cep, bairro, numero, rua, cpf_administrador, ativo) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, func.getCpf());
-            stmt.setString(2, func.getNome());
-            stmt.setString(3, func.getCargo());
-            stmt.setDate(4, Date.valueOf(func.getDataNasc()));
-            stmt.setString(5, func.getTelefone());
-            stmt.setString(6, func.getCep());
-            stmt.setString(7, func.getBairro());
-            stmt.setString(8, func.getNumero());
-            stmt.setString(9, func.getRua());
-            stmt.setString(10, func.getCpfAdministrador());
+            stmt.setString(1, f.getCpf());
+            stmt.setString(2, f.getNome());
+            stmt.setString(3, f.getCargo());
+            stmt.setDate(4, Date.valueOf(f.getData_nasc()));
+            stmt.setString(5, f.getTelefone());
+            stmt.setString(6, f.getCep());
+            stmt.setString(7, f.getBairro());
+            stmt.setString(8, f.getNumero());
+            stmt.setString(9, f.getRua());
+            stmt.setString(10, f.getCpf_administrador());
+            stmt.setBoolean(11, f.isAtivo());
 
             stmt.executeUpdate();
         }
     }
 
-    public void updateFuncionario(Funcionario func) throws SQLException {
-        String sql = "UPDATE Funcionario SET nome = ?, cargo = ?, data_nasc = ?, telefone = ?, cep = ?, bairro = ?, numero = ?, rua = ?, cpf_administrador = ? WHERE cpf = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, func.getNome());
-            stmt.setString(2, func.getCargo());
-            stmt.setDate(3, Date.valueOf(func.getDataNasc()));
-            stmt.setString(4, func.getTelefone());
-            stmt.setString(5, func.getCep());
-            stmt.setString(6, func.getBairro());
-            stmt.setString(7, func.getNumero());
-            stmt.setString(8, func.getRua());
-            stmt.setString(9, func.getCpfAdministrador());
-            stmt.setString(10, func.getCpf());
-
-            stmt.executeUpdate();
-        }
-    }
-
-
-    public List<Funcionario> getAllFuncionarios() throws SQLException {
+    public List<Funcionario> getAll() throws SQLException {
         List<Funcionario> lista = new ArrayList<>();
-        String sql = "SELECT * FROM Funcionario";
+        String sql = "SELECT * FROM funcionario";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -72,7 +52,8 @@ public class FuncionarioDAO {
                         rs.getString("bairro"),
                         rs.getString("numero"),
                         rs.getString("rua"),
-                        rs.getString("cpf_administrador")
+                        rs.getString("cpf_administrador"),
+                        rs.getBoolean("ativo")
                 );
                 lista.add(f);
             }
@@ -81,8 +62,8 @@ public class FuncionarioDAO {
         return lista;
     }
 
-    public Funcionario getFuncionarioByCpf(String cpf) throws SQLException {
-        String sql = "SELECT * FROM Funcionario WHERE cpf = ?";
+    public Funcionario getByCpf(String cpf) throws SQLException {
+        String sql = "SELECT * FROM funcionario WHERE cpf = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -101,7 +82,8 @@ public class FuncionarioDAO {
                         rs.getString("bairro"),
                         rs.getString("numero"),
                         rs.getString("rua"),
-                        rs.getString("cpf_administrador")
+                        rs.getString("cpf_administrador"),
+                        rs.getBoolean("ativo")
                 );
             }
         }
@@ -109,8 +91,40 @@ public class FuncionarioDAO {
         return null;
     }
 
-    public void deleteFuncionario(String cpf) throws SQLException {
-        String sql = "DELETE FROM Funcionario WHERE cpf = ?";
+    public void update(Funcionario f) throws SQLException {
+        String sql = "UPDATE funcionario SET nome = ?, cargo = ?, data_nasc = ?, telefone = ?, cep = ?, bairro = ?, numero = ?, rua = ?, cpf_administrador = ?, ativo = ? WHERE cpf = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, f.getNome());
+            stmt.setString(2, f.getCargo());
+            stmt.setDate(3, Date.valueOf(f.getData_nasc()));
+            stmt.setString(4, f.getTelefone());
+            stmt.setString(5, f.getCep());
+            stmt.setString(6, f.getBairro());
+            stmt.setString(7, f.getNumero());
+            stmt.setString(8, f.getRua());
+            stmt.setString(9, f.getCpf_administrador());
+            stmt.setBoolean(10, f.isAtivo());
+            stmt.setString(11, f.getCpf());
+
+            stmt.executeUpdate();
+        }
+    }
+
+    public void desativar(String cpf) throws SQLException {
+        String sql = "UPDATE funcionario SET ativo = false WHERE cpf = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            stmt.executeUpdate();
+        }
+    }
+
+    public void ativar(String cpf) throws SQLException {
+        String sql = "UPDATE funcionario SET ativo = true WHERE cpf = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

@@ -28,26 +28,36 @@ public class CupomController {
     @GetMapping
     public ResponseEntity<List<Cupom>> listarTodos() {
         try {
-            return ResponseEntity.ok(dao.getAllCupons());
+            return ResponseEntity.ok(dao.getAll());
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<Cupom> buscarPorCodigo(@PathVariable int codigo) {
+    public ResponseEntity<Cupom> buscar(@PathVariable int codigo) {
         try {
-            Cupom cupom = dao.getCupomByCodigo(codigo);
+            Cupom cupom = dao.getByCodigo(codigo);
             return (cupom != null) ? ResponseEntity.ok(cupom) : ResponseEntity.notFound().build();
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
+    @PutMapping
+    public ResponseEntity<String> atualizar(@RequestBody Cupom cupom) {
+        try {
+            dao.update(cupom);
+            return ResponseEntity.ok("Cupom atualizado com sucesso!");
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().body("Erro ao atualizar cupom: " + e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{codigo}")
     public ResponseEntity<String> deletar(@PathVariable int codigo) {
         try {
-            dao.deleteCupom(codigo);
+            dao.delete(codigo);
             return ResponseEntity.ok("Cupom excluído com sucesso!");
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().body("Erro ao excluir cupom: " + e.getMessage());

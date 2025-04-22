@@ -11,7 +11,6 @@ public class Indica {
         this.cpfIndicado = cpfIndicado;
     }
 
-    // Getters e setters
     public String getCpfIndicador() { return cpfIndicador; }
     public void setCpfIndicador(String cpfIndicador) { this.cpfIndicador = cpfIndicador; }
 

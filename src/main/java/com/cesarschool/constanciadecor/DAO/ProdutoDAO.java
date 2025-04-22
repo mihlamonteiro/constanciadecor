@@ -87,4 +87,22 @@ public class ProdutoDAO {
             stmt.executeUpdate();
         }
     }
+
+    // Novo método para editar produto
+    public void updateProduto(int codigo, Produto produto) throws SQLException {
+        String sql = "UPDATE Produtos SET nome = ?, descricao = ?, preco = ?, estoque = ?, cpf_administrador = ? WHERE codigo = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, produto.getNome());
+            stmt.setString(2, produto.getDescricao());
+            stmt.setDouble(3, produto.getPreco());
+            stmt.setInt(4, produto.getEstoque());
+            stmt.setString(5, produto.getCpfAdministrador());
+            stmt.setInt(6, codigo); // Usando o código para localizar o produto a ser editado
+
+            stmt.executeUpdate();
+        }
+    }
 }

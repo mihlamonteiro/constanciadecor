@@ -12,8 +12,7 @@ public class Cupom {
 
     public Cupom() {}
 
-    public Cupom(int codigo, LocalDate dataInicio, LocalDate dataVencimento,
-                 double valorDesconto, String descricao, String condicoesUso) {
+    public Cupom(int codigo, LocalDate dataInicio, LocalDate dataVencimento, double valorDesconto, String descricao, String condicoesUso) {
         this.codigo = codigo;
         this.dataInicio = dataInicio;
         this.dataVencimento = dataVencimento;
@@ -22,7 +21,6 @@ public class Cupom {
         this.condicoesUso = condicoesUso;
     }
 
-    // Getters e Setters
     public int getCodigo() { return codigo; }
     public void setCodigo(int codigo) { this.codigo = codigo; }
 

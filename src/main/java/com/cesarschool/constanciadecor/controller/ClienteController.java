@@ -2,7 +2,6 @@ package com.cesarschool.constanciadecor.controller;
 
 import com.cesarschool.constanciadecor.DAO.ClienteDAO;
 import com.cesarschool.constanciadecor.model.Cliente;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,19 +19,18 @@ public class ClienteController {
     public ResponseEntity<String> adicionar(@RequestBody Cliente cliente) {
         try {
             dao.addCliente(cliente);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Cliente cadastrado com sucesso!");
+            return ResponseEntity.status(201).body("Cliente cadastrado com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao cadastrar cliente: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao cadastrar cliente: " + e.getMessage());
         }
     }
 
     @GetMapping
     public ResponseEntity<List<Cliente>> listarTodos() {
         try {
-            List<Cliente> lista = dao.getAllClientes();
-            return ResponseEntity.ok(lista);
+            return ResponseEntity.ok(dao.getAllClientes());
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -40,13 +38,9 @@ public class ClienteController {
     public ResponseEntity<Cliente> buscarPorCpf(@PathVariable String cpf) {
         try {
             Cliente cliente = dao.getClienteByCpf(cpf);
-            if (cliente != null) {
-                return ResponseEntity.ok(cliente);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
+            return (cliente != null) ? ResponseEntity.ok(cliente) : ResponseEntity.notFound().build();
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -56,17 +50,17 @@ public class ClienteController {
             dao.updateCliente(cliente);
             return ResponseEntity.ok("Cliente atualizado com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar cliente: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao atualizar cliente: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/{cpf}")
-    public ResponseEntity<String> deletar(@PathVariable String cpf) {
+    public ResponseEntity<String> excluir(@PathVariable String cpf) {
         try {
             dao.deleteCliente(cpf);
-            return ResponseEntity.ok("Cliente removido com sucesso!");
+            return ResponseEntity.ok("Cliente excluído com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao remover cliente: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao excluir cliente: " + e.getMessage());
         }
     }
 }

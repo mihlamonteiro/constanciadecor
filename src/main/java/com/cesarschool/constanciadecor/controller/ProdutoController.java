@@ -20,16 +20,22 @@ public class ProdutoController {
     @PostMapping
     public ResponseEntity<String> adicionar(@RequestBody Produto produto) {
         try {
+            // Verifique o CPF do administrador que está sendo passado
+            System.out.println("Verificando administrador com CPF: " + produto.getCpfAdministrador());
+
+            // Verifica se o administrador existe no banco
             if (produto.getCpfAdministrador() == null || administradorDAO.getAdministradorByCpf(produto.getCpfAdministrador()) == null) {
                 return ResponseEntity.badRequest().body("Administrador responsável não encontrado.");
             }
 
+            // Se o administrador for encontrado, adiciona o produto
             dao.addProduto(produto);
             return ResponseEntity.status(201).body("Produto cadastrado com sucesso!");
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().body("Erro ao cadastrar produto: " + e.getMessage());
         }
     }
+
 
     @GetMapping
     public ResponseEntity<List<Produto>> listarTodos() {
@@ -49,6 +55,17 @@ public class ProdutoController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PutMapping("/{codigo}")
+    public ResponseEntity<String> editar(@PathVariable int codigo, @RequestBody Produto produto) {
+        try {
+            dao.updateProduto(codigo, produto);
+            return ResponseEntity.ok("Produto editado com sucesso!");
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().body("Erro ao editar produto: " + e.getMessage());
+        }
+    }
+
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<String> deletar(@PathVariable int codigo) {

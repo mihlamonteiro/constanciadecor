@@ -1,6 +1,5 @@
 package com.cesarschool.constanciadecor.controller;
 
-import com.cesarschool.constanciadecor.DAO.AdministradorAromasDAO;
 import com.cesarschool.constanciadecor.DAO.FuncionarioDAO;
 import com.cesarschool.constanciadecor.model.Funcionario;
 import org.springframework.http.ResponseEntity;
@@ -15,76 +14,63 @@ import java.util.List;
 public class FuncionarioController {
 
     private final FuncionarioDAO dao = new FuncionarioDAO();
-    private final AdministradorAromasDAO administradorDAO = new AdministradorAromasDAO();
 
-    // POST: cadastrar funcionário com validação do administrador
     @PostMapping
-    public ResponseEntity<String> adicionar(@RequestBody Funcionario func) {
+    public ResponseEntity<String> adicionar(@RequestBody Funcionario funcionario) {
         try {
-            // Valida se o CPF do administrador foi informado
-            if (func.getCpfAdministrador() == null || func.getCpfAdministrador().isBlank()) {
-                return ResponseEntity.badRequest().body("CPF do administrador é obrigatório.");
-            }
-
-            // Valida se o administrador existe
-            if (administradorDAO.getAdministradorByCpf(func.getCpfAdministrador()) == null) {
-                return ResponseEntity.badRequest().body("CPF do administrador informado não existe.");
-            }
-
-            // Insere o funcionário
-            dao.addFuncionario(func);
+            dao.addFuncionario(funcionario);
             return ResponseEntity.status(201).body("Funcionário cadastrado com sucesso!");
-
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().body("Erro ao cadastrar funcionário: " + e.getMessage());
         }
     }
 
-    // GET: listar todos os funcionários
     @GetMapping
     public ResponseEntity<List<Funcionario>> listarTodos() {
         try {
-            List<Funcionario> funcionarios = dao.getAllFuncionarios();
-            return ResponseEntity.ok(funcionarios);
+            return ResponseEntity.ok(dao.getAll());
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    // GET: buscar funcionário por CPF
     @GetMapping("/{cpf}")
     public ResponseEntity<Funcionario> buscarPorCpf(@PathVariable String cpf) {
         try {
-            Funcionario func = dao.getFuncionarioByCpf(cpf);
-            return (func != null) ? ResponseEntity.ok(func) : ResponseEntity.notFound().build();
+            Funcionario funcionario = dao.getByCpf(cpf);
+            return (funcionario != null) ? ResponseEntity.ok(funcionario) : ResponseEntity.notFound().build();
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @PutMapping
-    public ResponseEntity<String> atualizar(@RequestBody Funcionario func) {
+    public ResponseEntity<String> editar(@RequestBody Funcionario funcionario) {
         try {
-            dao.updateFuncionario(func);
+            dao.update(funcionario);
             return ResponseEntity.ok("Funcionário atualizado com sucesso!");
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().body("Erro ao atualizar funcionário: " + e.getMessage());
         }
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deletar(@RequestBody Funcionario func) {
+    @PutMapping("/desativar/{cpf}")
+    public ResponseEntity<String> desativar(@PathVariable String cpf) {
         try {
-            String cpf = func.getCpf();
-            if (cpf == null || cpf.isBlank()) {
-                return ResponseEntity.badRequest().body("CPF do funcionário é obrigatório.");
-            }
-
-            dao.deleteFuncionario(cpf);
-            return ResponseEntity.ok("Funcionário removido com sucesso!");
+            dao.desativar(cpf);
+            return ResponseEntity.ok("Funcionário desativado com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.internalServerError().body("Erro ao excluir: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao desativar funcionário: " + e.getMessage());
         }
     }
-    
+
+    @PutMapping("/ativar/{cpf}")
+    public ResponseEntity<String> ativar(@PathVariable String cpf) {
+        try {
+            dao.ativar(cpf);
+            return ResponseEntity.ok("Funcionário ativado com sucesso!");
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().body("Erro ao ativar funcionário: " + e.getMessage());
+        }
+    }
 }
