@@ -1,8 +1,9 @@
 package com.cesarschool.constanciadecor.DAO;
 
 import com.cesarschool.constanciadecor.config.DatabaseConnection;
-import com.cesarschool.constanciadecor.model.CompraAvalia;
+import com.cesarschool.constanciadecor.dto.ComprasPorMesDTO;
 import com.cesarschool.constanciadecor.dto.MediaAvaliacaoMensalDTO;
+import com.cesarschool.constanciadecor.model.CompraAvalia;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -49,13 +50,43 @@ public class CompraAvaliaDAO {
             stmt.executeUpdate();
         }
     }
+
+    /**
+     * Retorna a média de valor_total de compras por mês no ano informado.
+     */
+    public List<ComprasPorMesDTO> getMediaComprasPorMes(int ano) throws SQLException {
+        List<ComprasPorMesDTO> lista = new ArrayList<>();
+        String sql =
+                "SELECT MONTH(data_compra) AS mes, AVG(valor_total) AS media " +
+                        "FROM compra_avalia " +
+                        "WHERE YEAR(data_compra) = ? " +
+                        "GROUP BY MONTH(data_compra) " +
+                        "ORDER BY mes";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, ano);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String mes = String.format("%02d", rs.getInt("mes"));
+                    double media = rs.getDouble("media");
+                    lista.add(new ComprasPorMesDTO(mes, media));
+                }
+            }
+        }
+
+        return lista;
+    }
+
     public List<MediaAvaliacaoMensalDTO> getMediaAvaliacoesPorMes(int ano) throws SQLException {
         List<MediaAvaliacaoMensalDTO> lista = new ArrayList<>();
-        String sql = "SELECT MONTH(data_avaliacao) AS mes, AVG(nota) AS mediaNota " +
-                "FROM compra_avalia " +
-                "WHERE nota > 0 AND YEAR(data_avaliacao) = ? " +
-                "GROUP BY MONTH(data_avaliacao) " +
-                "ORDER BY mes";
+        String sql =
+                "SELECT MONTH(data_avaliacao) AS mes, AVG(nota) AS mediaNota " +
+                        "FROM compra_avalia " +
+                        "WHERE nota > 0 AND YEAR(data_avaliacao) = ? " +
+                        "GROUP BY MONTH(data_avaliacao) " +
+                        "ORDER BY mes";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

@@ -1,34 +1,42 @@
+// src/main/java/com/cesarschool/constanciadecor/controller/DashboardController.java
 package com.cesarschool.constanciadecor.controller;
 
-import org.springframework.web.bind.annotation.*;
+import com.cesarschool.constanciadecor.DAO.CompraAvaliaDAO;
+import com.cesarschool.constanciadecor.dto.ComprasPorMesDTO;
+import com.cesarschool.constanciadecor.dto.MediaAvaliacaoMensalDTO;
+import com.cesarschool.constanciadecor.config.DatabaseConnection;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.*;
 import java.time.Month;
 import java.util.*;
 
-import com.cesarschool.constanciadecor.config.DatabaseConnection;
-
-@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/dashboard")
+@RequestMapping("/compras/dashboard")
+@CrossOrigin(origins = "*")
 public class DashboardController {
+
+    private final CompraAvaliaDAO dao = new CompraAvaliaDAO();
+
+    // --- Contagens legadas ---
 
     @GetMapping("/avaliacoes-mensais")
     public ResponseEntity<Map<String, Integer>> getAvaliacoesMensais() {
         Map<String, Integer> resultado = new LinkedHashMap<>();
-        String sql = "SELECT MONTH(data_avaliacao) AS mes, COUNT(*) AS total FROM avaliacao GROUP BY mes ORDER BY mes";
+        String sql = "SELECT MONTH(data_avaliacao) AS mes, COUNT(*) AS total "
+                + "FROM avaliacao GROUP BY mes ORDER BY mes";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                int mes = rs.getInt("mes");
-                resultado.put(Month.of(mes).name(), rs.getInt("total"));
+                resultado.put(Month.of(rs.getInt("mes")).name(), rs.getInt("total"));
             }
-
             return ResponseEntity.ok(resultado);
+
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -37,18 +45,18 @@ public class DashboardController {
     @GetMapping("/vendas-mensais")
     public ResponseEntity<Map<String, Integer>> getVendasMensais() {
         Map<String, Integer> resultado = new LinkedHashMap<>();
-        String sql = "SELECT MONTH(data) AS mes, COUNT(*) AS total FROM compra GROUP BY mes ORDER BY mes";
+        String sql = "SELECT MONTH(data) AS mes, COUNT(*) AS total "
+                + "FROM compra GROUP BY mes ORDER BY mes";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                int mes = rs.getInt("mes");
-                resultado.put(Month.of(mes).name(), rs.getInt("total"));
+                resultado.put(Month.of(rs.getInt("mes")).name(), rs.getInt("total"));
             }
-
             return ResponseEntity.ok(resultado);
+
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -63,23 +71,24 @@ public class DashboardController {
              ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
-                Map<String, Integer> resultado = new HashMap<>();
-                resultado.put("totalClientes", rs.getInt("total"));
-                return ResponseEntity.ok(resultado);
+                Map<String, Integer> m = new HashMap<>();
+                m.put("totalClientes", rs.getInt("total"));
+                return ResponseEntity.ok(m);
             }
-
             return ResponseEntity.noContent().build();
+
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @GetMapping("/clientes-mais-indicaram")
-    public ResponseEntity<List<Map<String, Object>>> getClientesQueMaisIndicaram() {
-        String sql = "SELECT cpf_indicador, COUNT(*) AS total FROM indica GROUP BY cpf_indicador ORDER BY total DESC LIMIT 5";
+    public ResponseEntity<List<Map<String, Object>>> getClientesMaisIndicaram() {
+        String sql = "SELECT cpf_indicador, COUNT(*) AS total "
+                + "FROM indica GROUP BY cpf_indicador "
+                + "ORDER BY total DESC LIMIT 5";
 
         List<Map<String, Object>> lista = new ArrayList<>();
-
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -90,8 +99,33 @@ public class DashboardController {
                 item.put("total", rs.getInt("total"));
                 lista.add(item);
             }
-
             return ResponseEntity.ok(lista);
+
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
+    // --- Métricas por mês via DTOs ---
+
+    @GetMapping("/compras-por-mes")
+    public ResponseEntity<List<ComprasPorMesDTO>> getComprasPorMes(
+            @RequestParam("ano") int ano) {
+        try {
+            List<ComprasPorMesDTO> medias = dao.getMediaComprasPorMes(ano);
+            return ResponseEntity.ok(medias);
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/avaliacoes-por-mes")
+    public ResponseEntity<List<MediaAvaliacaoMensalDTO>> getAvaliacoesPorMes(
+            @RequestParam("ano") int ano) {
+        try {
+            List<MediaAvaliacaoMensalDTO> medias = dao.getMediaAvaliacoesPorMes(ano);
+            return ResponseEntity.ok(medias);
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
