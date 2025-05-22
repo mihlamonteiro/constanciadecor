@@ -5,6 +5,7 @@ import com.cesarschool.constanciadecor.DAO.CompraAvaliaDAO;
 import com.cesarschool.constanciadecor.dto.ComprasPorMesDTO;
 import com.cesarschool.constanciadecor.dto.MediaAvaliacaoMensalDTO;
 import com.cesarschool.constanciadecor.config.DatabaseConnection;
+import com.cesarschool.constanciadecor.dto.ProdutosVendidosCategoriaDTO;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +21,10 @@ public class DashboardController {
 
     private final CompraAvaliaDAO dao = new CompraAvaliaDAO();
 
-    // --- Contagens legadas ---
-
     @GetMapping("/avaliacoes-mensais")
     public ResponseEntity<Map<String, Integer>> getAvaliacoesMensais() {
         Map<String, Integer> resultado = new LinkedHashMap<>();
-        String sql = "SELECT MONTH(data_avaliacao) AS mes, COUNT(*) AS total "
-                + "FROM avaliacao GROUP BY mes ORDER BY mes";
+        String sql = "SELECT MONTH(data_avaliacao) AS mes, COUNT(*) AS total FROM avaliacao GROUP BY mes ORDER BY mes";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -42,11 +40,23 @@ public class DashboardController {
         }
     }
 
+    @GetMapping("/comparativo-vendas")
+    public ResponseEntity<List<Map<String, Object>>> getComparativoVendas(
+            @RequestParam("ano1") int ano1,
+            @RequestParam("ano2") int ano2,
+            @RequestParam("mes") int mesLimite) {
+        try {
+            List<Map<String, Object>> comparativo = dao.getComparativoVendas(ano1, ano2, mesLimite);
+            return ResponseEntity.ok(comparativo);
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/vendas-mensais")
     public ResponseEntity<Map<String, Integer>> getVendasMensais() {
         Map<String, Integer> resultado = new LinkedHashMap<>();
-        String sql = "SELECT MONTH(data) AS mes, COUNT(*) AS total "
-                + "FROM compra GROUP BY mes ORDER BY mes";
+        String sql = "SELECT MONTH(data) AS mes, COUNT(*) AS total FROM compra GROUP BY mes ORDER BY mes";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -82,11 +92,20 @@ public class DashboardController {
         }
     }
 
+    @GetMapping("/produtos-vendidos-por-categoria")
+    public ResponseEntity<List<ProdutosVendidosCategoriaDTO>> getProdutosVendidosPorCategoria(@RequestParam int ano) {
+        try {
+            List<ProdutosVendidosCategoriaDTO> lista = dao.getProdutosVendidosPorCategoria(ano);
+            return ResponseEntity.ok(lista);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/clientes-mais-indicaram")
     public ResponseEntity<List<Map<String, Object>>> getClientesMaisIndicaram() {
-        String sql = "SELECT cpf_indicador, COUNT(*) AS total "
-                + "FROM indica GROUP BY cpf_indicador "
-                + "ORDER BY total DESC LIMIT 5";
+        String sql = "SELECT cpf_indicador, COUNT(*) AS total FROM indica GROUP BY cpf_indicador ORDER BY total DESC LIMIT 5";
 
         List<Map<String, Object>> lista = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
@@ -106,12 +125,8 @@ public class DashboardController {
         }
     }
 
-
-    // --- Métricas por mês via DTOs ---
-
     @GetMapping("/compras-por-mes")
-    public ResponseEntity<List<ComprasPorMesDTO>> getComprasPorMes(
-            @RequestParam("ano") int ano) {
+    public ResponseEntity<List<ComprasPorMesDTO>> getComprasPorMes(@RequestParam("ano") int ano) {
         try {
             List<ComprasPorMesDTO> medias = dao.getMediaComprasPorMes(ano);
             return ResponseEntity.ok(medias);
@@ -121,8 +136,7 @@ public class DashboardController {
     }
 
     @GetMapping("/avaliacoes-por-mes")
-    public ResponseEntity<List<MediaAvaliacaoMensalDTO>> getAvaliacoesPorMes(
-            @RequestParam("ano") int ano) {
+    public ResponseEntity<List<MediaAvaliacaoMensalDTO>> getAvaliacoesPorMes(@RequestParam("ano") int ano) {
         try {
             List<MediaAvaliacaoMensalDTO> medias = dao.getMediaAvaliacoesPorMes(ano);
             return ResponseEntity.ok(medias);

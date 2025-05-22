@@ -3,6 +3,8 @@ package com.cesarschool.constanciadecor.controller;
 
 import com.cesarschool.constanciadecor.DAO.CompraAvaliaDAO;
 import com.cesarschool.constanciadecor.model.CompraAvalia;
+import com.cesarschool.constanciadecor.model.ItemCompra;
+import com.cesarschool.constanciadecor.dto.NovaCompraDTO;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +20,9 @@ public class CompraAvaliaController {
     private final CompraAvaliaDAO dao = new CompraAvaliaDAO();
 
     @PostMapping
-    public ResponseEntity<String> adicionar(@RequestBody CompraAvalia compra) {
+    public ResponseEntity<String> adicionar(@RequestBody NovaCompraDTO dto) {
         try {
-            dao.addCompra(compra);
+            dao.salvarCompraComItens(dto);
             return ResponseEntity.status(201).body("Compra registrada com sucesso!");
         } catch (SQLException e) {
             return ResponseEntity.internalServerError()
@@ -72,5 +74,17 @@ public class CompraAvaliaController {
         }
     }
 
-    // **Endpoints de dashboard foram removidos daqui** para evitar mapeamento duplicado.
+
+    @GetMapping("/{numero}/itens")
+    public ResponseEntity<List<ItemCompra>> getItensDaCompra(@PathVariable int numero) {
+        try {
+            List<ItemCompra> itens = dao.listarItensDaCompra(numero);
+            if (itens.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(itens);
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

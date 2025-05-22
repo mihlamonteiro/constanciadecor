@@ -89,6 +89,21 @@ public class ClienteController {
         }
     }
 
+    @GetMapping("/enderecos")
+    public ResponseEntity<List<String>> listarEnderecosClientes() {
+        try {
+            List<Cliente> clientes = dao.getAllClientes();
+            List<String> enderecos = clientes.stream()
+                    .map(c -> String.format("%s, %s - %s, %s - %s",
+                            c.getRua(), c.getNumero(), c.getBairro(), c.getCidade(), c.getCep()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(enderecos);
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
     /**
      * Exclui um cliente pelo CPF
      * DELETE /clientes/{cpf}

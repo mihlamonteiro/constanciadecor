@@ -10,6 +10,7 @@ public class Produto {
     private int estoque;
     private LocalDate dataCadastro;
     private String cpfAdministrador;
+    private String nomeImagem;
 
     public Produto() {}
 
@@ -45,4 +46,7 @@ public class Produto {
 
     public String getCpfAdministrador() { return cpfAdministrador; }
     public void setCpfAdministrador(String cpfAdministrador) { this.cpfAdministrador = cpfAdministrador; }
+
+    public String getNomeImagem() { return nomeImagem; }
+    public void setNomeImagem(String nomeImagem) { this.nomeImagem = nomeImagem; }
 }

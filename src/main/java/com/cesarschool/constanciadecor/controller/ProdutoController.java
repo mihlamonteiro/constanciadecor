@@ -3,11 +3,15 @@ package com.cesarschool.constanciadecor.controller;
 import com.cesarschool.constanciadecor.DAO.AdministradorAromasDAO;
 import com.cesarschool.constanciadecor.DAO.ProdutoDAO;
 import com.cesarschool.constanciadecor.model.Produto;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.*;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -36,6 +40,48 @@ public class ProdutoController {
         }
     }
 
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> adicionarProdutoComImagem(
+            @RequestPart("produto") Produto produto,
+            @RequestPart("imagem") MultipartFile imagem) {
+
+        try {
+            String pasta = "uploads/";
+            String nomeArquivo = UUID.randomUUID() + "_" + imagem.getOriginalFilename();
+            Path destino = Paths.get(pasta + nomeArquivo);
+
+            Files.createDirectories(destino.getParent());
+            Files.copy(imagem.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+
+            produto.setNomeImagem(nomeArquivo);
+            dao.addProduto(produto);
+
+            return ResponseEntity.status(201).body("Produto cadastrado com imagem!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erro ao salvar imagem: " + e.getMessage());
+        }
+    }
+
+    @PutMapping(value = "/{codigo}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> editarProdutoComImagem(
+            @PathVariable int codigo,
+            @RequestPart("produto") Produto produto,
+            @RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+        try {
+            if (imagem != null && !imagem.isEmpty()) {
+                String pasta = "uploads/";
+                String nomeArquivo = UUID.randomUUID() + "_" + imagem.getOriginalFilename();
+                Path destino = Paths.get(pasta + nomeArquivo);
+                Files.createDirectories(destino.getParent());
+                Files.copy(imagem.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+                produto.setNomeImagem(nomeArquivo);
+            }
+            dao.updateProduto(codigo, produto);
+            return ResponseEntity.ok("Produto editado com imagem!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erro ao editar produto com imagem: " + e.getMessage());
+        }
+    }
 
     @GetMapping
     public ResponseEntity<List<Produto>> listarTodos() {
@@ -65,7 +111,6 @@ public class ProdutoController {
             return ResponseEntity.internalServerError().body("Erro ao editar produto: " + e.getMessage());
         }
     }
-
 
     @DeleteMapping("/{codigo}")
     public ResponseEntity<String> deletar(@PathVariable int codigo) {
