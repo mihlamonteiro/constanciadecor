@@ -40,6 +40,17 @@ public class DashboardController {
         }
     }
 
+    @GetMapping("/media-avaliacao-loja")
+    public ResponseEntity<Double> getMediaAvaliacaoLoja() {
+        try {
+            Double media = dao.getMediaAvaliacaoLoja();
+            return (media != null) ? ResponseEntity.ok(media) : ResponseEntity.noContent().build();
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
     @GetMapping("/comparativo-vendas")
     public ResponseEntity<List<Map<String, Object>>> getComparativoVendas(
             @RequestParam("ano1") int ano1,

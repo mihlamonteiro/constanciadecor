@@ -149,6 +149,20 @@ public class CompraAvaliaDAO {
         return resultado;
     }
 
+    public Double getMediaAvaliacaoLoja() throws SQLException {
+        String sql = "SELECT AVG(nota) AS media FROM compra_avalia WHERE nota IS NOT NULL";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getDouble("media");
+            }
+        }
+        return null;
+    }
+
+
 
     public List<ItemCompra> listarItensDaCompra(int numeroCompra) throws SQLException {
         List<ItemCompra> lista = new ArrayList<>();
