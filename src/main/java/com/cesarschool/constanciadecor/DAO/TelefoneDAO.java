@@ -31,6 +31,36 @@ public class TelefoneDAO {
         }
     }
 
+    public void updateTelefonesPorCliente(String cpfCliente, List<String> novosTelefones) throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+
+            // 1. Remover todos os telefones atuais do cliente
+            String deleteSql = "DELETE FROM Telefone WHERE cpf_cliente = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
+                stmt.setString(1, cpfCliente);
+                stmt.executeUpdate();
+            }
+
+            // 2. Inserir os novos telefones
+            String insertSql = "INSERT INTO Telefone (cpf_cliente, telefone) VALUES (?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+                for (String telefone : novosTelefones) {
+                    stmt.setString(1, cpfCliente);
+                    stmt.setString(2, telefone);
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+
     public List<Telefone> listarPorCliente(String cpfCliente) throws SQLException {
         List<Telefone> lista = new ArrayList<>();
         String sql = "SELECT * FROM Telefone WHERE cpf_cliente = ?";
