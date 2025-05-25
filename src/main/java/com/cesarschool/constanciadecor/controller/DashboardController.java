@@ -40,6 +40,17 @@ public class DashboardController {
         }
     }
 
+    @GetMapping("/faturamento")
+    public ResponseEntity<Map<String, Double>> getFaturamento() {
+        try {
+            Map<String, Double> faturamento = dao.getFaturamento();
+            return ResponseEntity.ok(faturamento);
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
     @GetMapping("/media-avaliacao-loja")
     public ResponseEntity<Double> getMediaAvaliacaoLoja() {
         try {

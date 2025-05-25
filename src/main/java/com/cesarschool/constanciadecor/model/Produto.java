@@ -11,11 +11,14 @@ public class Produto {
     private LocalDate dataCadastro;
     private String cpfAdministrador;
     private String nomeImagem;
+    private double precoProducao; // Novo campo para o preço de produção
 
-    public Produto() {}
+    public Produto() {
+    }
 
+    // Novo construtor completo com precoProducao
     public Produto(int codigo, String nome, String descricao, double preco, int estoque,
-                   LocalDate dataCadastro, String cpfAdministrador) {
+                   LocalDate dataCadastro, String cpfAdministrador, double precoProducao) {
         this.codigo = codigo;
         this.nome = nome;
         this.descricao = descricao;
@@ -23,9 +26,10 @@ public class Produto {
         this.estoque = estoque;
         this.dataCadastro = dataCadastro;
         this.cpfAdministrador = cpfAdministrador;
+        this.precoProducao = precoProducao;
     }
 
-    // Getters e setters
+    // Getters e Setters
     public int getCodigo() { return codigo; }
     public void setCodigo(int codigo) { this.codigo = codigo; }
 
@@ -49,4 +53,7 @@ public class Produto {
 
     public String getNomeImagem() { return nomeImagem; }
     public void setNomeImagem(String nomeImagem) { this.nomeImagem = nomeImagem; }
+
+    public double getPrecoProducao() { return precoProducao; }
+    public void setPrecoProducao(double precoProducao) { this.precoProducao = precoProducao; }
 }

@@ -10,8 +10,8 @@ import java.util.List;
 public class ProdutoDAO {
 
     public void addProduto(Produto produto) throws SQLException {
-        String sql = "INSERT INTO Produtos (codigo, nome, descricao, preco, estoque, dataCadastro, cpf_administrador, nomeImagem) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Produtos (codigo, nome, descricao, preco, preco_producao, estoque, dataCadastro, cpf_administrador, nomeImagem) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -20,10 +20,11 @@ public class ProdutoDAO {
             stmt.setString(2, produto.getNome());
             stmt.setString(3, produto.getDescricao());
             stmt.setDouble(4, produto.getPreco());
-            stmt.setInt(5, produto.getEstoque());
-            stmt.setDate(6, Date.valueOf(produto.getDataCadastro()));
-            stmt.setString(7, produto.getCpfAdministrador());
-            stmt.setString(8, produto.getNomeImagem()); // <- imagem aqui
+            stmt.setDouble(5, produto.getPrecoProducao()); // Adicionado preço de produção
+            stmt.setInt(6, produto.getEstoque());
+            stmt.setDate(7, Date.valueOf(produto.getDataCadastro()));
+            stmt.setString(8, produto.getCpfAdministrador());
+            stmt.setString(9, produto.getNomeImagem());
 
             stmt.executeUpdate();
         }
@@ -46,7 +47,8 @@ public class ProdutoDAO {
                         rs.getDouble("preco"),
                         rs.getInt("estoque"),
                         rs.getDate("dataCadastro").toLocalDate(),
-                        rs.getString("cpf_administrador")
+                        rs.getString("cpf_administrador"),
+                        rs.getDouble("preco_producao") // Adicionado preço de produção
                 );
                 produto.setNomeImagem(rs.getString("nomeImagem"));
                 return produto;
@@ -72,12 +74,10 @@ public class ProdutoDAO {
                         rs.getDouble("preco"),
                         rs.getInt("estoque"),
                         rs.getDate("dataCadastro").toLocalDate(),
-                        rs.getString("cpf_administrador")
+                        rs.getString("cpf_administrador"),
+                        rs.getDouble("preco_producao") // Adicionado preço de produção
                 );
-
-                // 👇 Adiciona o campo da imagem
                 produto.setNomeImagem(rs.getString("nomeImagem"));
-
                 produtos.add(produto);
             }
         }
@@ -95,9 +95,8 @@ public class ProdutoDAO {
         }
     }
 
-
     public void updateProduto(int codigo, Produto produto) throws SQLException {
-        String sql = "UPDATE Produtos SET nome = ?, descricao = ?, preco = ?, estoque = ?, cpf_administrador = ?, nomeImagem = ? WHERE codigo = ?";
+        String sql = "UPDATE Produtos SET nome = ?, descricao = ?, preco = ?, preco_producao = ?, estoque = ?, cpf_administrador = ?, nomeImagem = ? WHERE codigo = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -105,13 +104,13 @@ public class ProdutoDAO {
             stmt.setString(1, produto.getNome());
             stmt.setString(2, produto.getDescricao());
             stmt.setDouble(3, produto.getPreco());
-            stmt.setInt(4, produto.getEstoque());
-            stmt.setString(5, produto.getCpfAdministrador());
-            stmt.setString(6, produto.getNomeImagem()); // nova imagem
-            stmt.setInt(7, codigo);
+            stmt.setDouble(4, produto.getPrecoProducao()); // Adicionado preço de produção
+            stmt.setInt(5, produto.getEstoque());
+            stmt.setString(6, produto.getCpfAdministrador());
+            stmt.setString(7, produto.getNomeImagem());
+            stmt.setInt(8, codigo);
 
             stmt.executeUpdate();
         }
     }
-
 }

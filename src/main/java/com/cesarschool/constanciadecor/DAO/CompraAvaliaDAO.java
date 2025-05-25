@@ -161,6 +161,30 @@ public class CompraAvaliaDAO {
         }
         return null;
     }
+    public Map<String, Double> getFaturamento() throws SQLException {
+        String sql = """
+        SELECT 
+            SUM(p.preco * ic.quantidade) AS receita_total,
+            SUM(p.preco_producao * ic.quantidade) AS custo_total
+        FROM compra_avalia c
+        JOIN item_compra ic ON c.numero = ic.numero_compra
+        JOIN produtos p ON ic.codigo_produto = p.codigo
+    """;
+
+        Map<String, Double> resultado = new HashMap<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                resultado.put("receita", rs.getDouble("receita_total"));
+                resultado.put("custo", rs.getDouble("custo_total"));
+                resultado.put("lucro", rs.getDouble("receita_total") - rs.getDouble("custo_total"));
+            }
+        }
+        return resultado;
+    }
+
 
 
 
