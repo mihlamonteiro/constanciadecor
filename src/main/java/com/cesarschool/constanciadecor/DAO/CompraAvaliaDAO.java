@@ -325,6 +325,21 @@ public class CompraAvaliaDAO {
                 stmt.executeUpdate();
             }
 
+            String updateEstoque = "UPDATE produtos SET estoque = estoque - ? WHERE codigo = ? AND estoque >= ?";
+            try (PreparedStatement stmt = conn.prepareStatement(updateEstoque)) {
+                for (var item : dto.getItens()) {
+                    stmt.setInt(1, item.getQuantidade());
+                    stmt.setInt(2, item.getCodigoProduto());
+                    stmt.setInt(3, item.getQuantidade());
+                    int affectedRows = stmt.executeUpdate();
+                    if (affectedRows == 0) {
+                        conn.rollback();
+                        throw new SQLException("Quantidade insuficiente no estoque para o produto " + item.getCodigoProduto());
+                    }
+                }
+            }
+
+
             String insertItem = "INSERT INTO item_compra (numero_compra, codigo_produto, quantidade) VALUES (?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(insertItem)) {
                 for (var item : dto.getItens()) {
