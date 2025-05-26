@@ -13,43 +13,6 @@ import java.util.*;
 
 public class CompraAvaliaDAO {
 
-    public void addCompra(CompraAvalia compra) throws SQLException {
-        double valorFinal = compra.getValor_total();
-
-        if (compra.getCodigo_cupom() != null) {
-            String cupomQuery = "SELECT valorDesconto FROM cupom WHERE codigo = ?";
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(cupomQuery)) {
-
-                stmt.setInt(1, compra.getCodigo_cupom());
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        double desconto = rs.getDouble("valorDesconto");
-                        valorFinal = Math.max(0, valorFinal - desconto);
-                    }
-                }
-            }
-        }
-
-        String sql = "INSERT INTO compra_avalia (numero, data_compra, valor_total, cpf_cliente, codigo_cupom) VALUES (?, ?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, compra.getNumero());
-            stmt.setDate(2, compra.getData_compra());
-            stmt.setDouble(3, valorFinal);
-            stmt.setString(4, compra.getCpf_cliente());
-
-            if (compra.getCodigo_cupom() != null) {
-                stmt.setInt(5, compra.getCodigo_cupom());
-            } else {
-                stmt.setNull(5, Types.INTEGER);
-            }
-
-            stmt.executeUpdate();
-        }
-    }
 
     public List<ProdutosVendidosCategoriaDTO> getProdutosVendidosPorCategoria(int ano) throws SQLException {
         List<ProdutosVendidosCategoriaDTO> lista = new ArrayList<>();
@@ -101,43 +64,47 @@ public class CompraAvaliaDAO {
         return lista;
     }
 
-    public List<Map<String, Object>> getComparativoVendas(int ano1, int ano2, int mesLimite) throws SQLException {
-        String sql = """
+    public List<Map<String, Object>> getComparativoVendas(int ano1, int ano2, Integer mesLimite) throws SQLException {
+        StringBuilder sql = new StringBuilder("""
         SELECT
             MONTH(data_compra) AS mes,
             YEAR(data_compra) AS ano,
             SUM(valor_total) AS total
         FROM compra_avalia
         WHERE (YEAR(data_compra) = ? OR YEAR(data_compra) = ?)
-        AND MONTH(data_compra) <= ?
-        GROUP BY YEAR(data_compra), MONTH(data_compra)
-        ORDER BY mes
-    """;
+    """);
+
+        if (mesLimite != null) {
+            sql.append(" AND MONTH(data_compra) <= ? ");
+        }
+
+        sql.append(" GROUP BY YEAR(data_compra), MONTH(data_compra) ORDER BY mes ");
 
         Map<String, Map<Integer, Double>> agrupado = new LinkedHashMap<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             stmt.setInt(1, ano1);
             stmt.setInt(2, ano2);
-            stmt.setInt(3, mesLimite);
+
+            if (mesLimite != null) {
+                stmt.setInt(3, mesLimite);
+            }
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    int mes = rs.getInt("mes");
+                    String mes = String.format("%02d", rs.getInt("mes"));
                     int ano = rs.getInt("ano");
                     double total = rs.getDouble("total");
 
-                    String chaveMes = String.format("%02d", mes);
-                    agrupado.putIfAbsent(chaveMes, new HashMap<>());
-                    agrupado.get(chaveMes).put(ano, total);
+                    agrupado.putIfAbsent(mes, new HashMap<>());
+                    agrupado.get(mes).put(ano, total);
                 }
             }
         }
 
         List<Map<String, Object>> resultado = new ArrayList<>();
-
         for (String mes : agrupado.keySet()) {
             Map<String, Object> linha = new HashMap<>();
             linha.put("mes", mes);
@@ -148,6 +115,55 @@ public class CompraAvaliaDAO {
 
         return resultado;
     }
+
+
+    public List<Map<String, Object>> getComparativoVendasPorDia(int ano1, int ano2, int mes) throws SQLException {
+        String sql = """
+        SELECT
+            DAY(data_compra) AS dia,
+            YEAR(data_compra) AS ano,
+            SUM(valor_total) AS total
+        FROM compra_avalia
+        WHERE (YEAR(data_compra) = ? OR YEAR(data_compra) = ?)
+        AND MONTH(data_compra) = ?
+        GROUP BY YEAR(data_compra), DAY(data_compra)
+        ORDER BY dia
+    """;
+
+        Map<Integer, Map<Integer, Double>> agrupado = new LinkedHashMap<>();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ano1);
+            stmt.setInt(2, ano2);
+            stmt.setInt(3, mes);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int dia = rs.getInt("dia");
+                    int ano = rs.getInt("ano");
+                    double total = rs.getDouble("total");
+
+                    agrupado.putIfAbsent(dia, new HashMap<>());
+                    agrupado.get(dia).put(ano, total);
+                }
+            }
+        }
+
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Integer dia : agrupado.keySet()) {
+            Map<String, Object> linha = new HashMap<>();
+            linha.put("dia", dia);
+            linha.put("ano1", agrupado.get(dia).getOrDefault(ano1, 0.0));
+            linha.put("ano2", agrupado.get(dia).getOrDefault(ano2, 0.0));
+            resultado.add(linha);
+        }
+
+        return resultado;
+    }
+
+
+
 
     public Double getMediaAvaliacaoLoja() throws SQLException {
         String sql = "SELECT AVG(nota) AS media FROM compra_avalia WHERE nota IS NOT NULL";
@@ -183,6 +199,43 @@ public class CompraAvaliaDAO {
             }
         }
         return resultado;
+    }
+    public void addCompra(CompraAvalia compra) throws SQLException {
+        double valorFinal = compra.getValor_total();
+
+        // Se houver cupom, buscar o valor de desconto e aplicar
+        if (compra.getCodigo_cupom() != null) {
+            String sqlCupom = "SELECT valorDesconto FROM cupom WHERE codigo = ?";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement stmtCupom = conn.prepareStatement(sqlCupom)) {
+
+                stmtCupom.setInt(1, compra.getCodigo_cupom());
+                ResultSet rs = stmtCupom.executeQuery();
+
+                if (rs.next()) {
+                    double desconto = rs.getDouble("valorDesconto");
+                    valorFinal = Math.max(0, valorFinal - desconto);
+                }
+            }
+        }
+
+        String sql = "INSERT INTO compra_avalia (numero, data_compra, valor_total, cpf_cliente, codigo_cupom) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, compra.getNumero());
+            stmt.setDate(2, new java.sql.Date(compra.getData_compra().getTime()));
+            stmt.setDouble(3, valorFinal);
+            stmt.setString(4, compra.getCpf_cliente());
+
+            if (compra.getCodigo_cupom() != null) {
+                stmt.setInt(5, compra.getCodigo_cupom());
+            } else {
+                stmt.setNull(5, Types.INTEGER);
+            }
+
+            stmt.executeUpdate();
+        }
     }
 
 

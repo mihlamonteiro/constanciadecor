@@ -68,11 +68,7 @@ public class CompraAvalia {
         this.cpf_cliente = cpf_cliente;
     }
 
-    public Integer getCodigo_cupom() {
-        return codigo_cupom;
-    }
 
-    public void setCodigo_cupom(Integer codigo_cupom) {
-        this.codigo_cupom = codigo_cupom;
-    }
+    public Integer getCodigo_cupom() { return codigo_cupom; }
+    public void setCodigo_cupom(Integer codigo_cupom) { this.codigo_cupom = codigo_cupom; }
 }

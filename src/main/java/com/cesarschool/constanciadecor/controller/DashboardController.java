@@ -1,12 +1,14 @@
 // src/main/java/com/cesarschool/constanciadecor/controller/DashboardController.java
 package com.cesarschool.constanciadecor.controller;
 
+import com.cesarschool.constanciadecor.DAO.ClienteDAO;
 import com.cesarschool.constanciadecor.DAO.CompraAvaliaDAO;
 import com.cesarschool.constanciadecor.dto.ComprasPorMesDTO;
 import com.cesarschool.constanciadecor.dto.MediaAvaliacaoMensalDTO;
 import com.cesarschool.constanciadecor.config.DatabaseConnection;
 import com.cesarschool.constanciadecor.dto.ProdutosVendidosCategoriaDTO;
 
+import com.cesarschool.constanciadecor.model.Cliente;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,7 +68,7 @@ public class DashboardController {
     public ResponseEntity<List<Map<String, Object>>> getComparativoVendas(
             @RequestParam("ano1") int ano1,
             @RequestParam("ano2") int ano2,
-            @RequestParam("mes") int mesLimite) {
+            @RequestParam(value = "mes", required = false) Integer mesLimite) {
         try {
             List<Map<String, Object>> comparativo = dao.getComparativoVendas(ano1, ano2, mesLimite);
             return ResponseEntity.ok(comparativo);
@@ -127,16 +129,21 @@ public class DashboardController {
 
     @GetMapping("/clientes-mais-indicaram")
     public ResponseEntity<List<Map<String, Object>>> getClientesMaisIndicaram() {
-        String sql = "SELECT cpf_indicador, COUNT(*) AS total FROM indica GROUP BY cpf_indicador ORDER BY total DESC LIMIT 5";
-
+        String sql = "SELECT cpf_indicador, COUNT(*) AS total FROM indica GROUP BY cpf_indicador ORDER BY total DESC LIMIT 3";
         List<Map<String, Object>> lista = new ArrayList<>();
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
+            ClienteDAO clienteDAO = new ClienteDAO();
+
             while (rs.next()) {
                 Map<String, Object> item = new HashMap<>();
-                item.put("cpf", rs.getString("cpf_indicador"));
+                String cpf = rs.getString("cpf_indicador");
+                Cliente cliente = clienteDAO.getClienteByCpf(cpf);
+                String nome = (cliente != null) ? cliente.getNome() : "Desconhecido";
+                item.put("cpf", cpf);
+                item.put("nome", nome);
                 item.put("total", rs.getInt("total"));
                 lista.add(item);
             }
@@ -146,6 +153,21 @@ public class DashboardController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/comparativo-vendas-por-dia")
+    public ResponseEntity<List<Map<String, Object>>> getComparativoVendasPorDia(
+            @RequestParam("ano1") int ano1,
+            @RequestParam("ano2") int ano2,
+            @RequestParam("mes") int mes) {
+        try {
+            List<Map<String, Object>> comparativo = dao.getComparativoVendasPorDia(ano1, ano2, mes);
+            return ResponseEntity.ok(comparativo);
+        } catch (SQLException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
 
     @GetMapping("/compras-por-mes")
     public ResponseEntity<List<ComprasPorMesDTO>> getComprasPorMes(@RequestParam("ano") int ano) {

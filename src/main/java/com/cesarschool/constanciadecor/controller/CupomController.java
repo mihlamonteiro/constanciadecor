@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.SQLException;
 import java.util.List;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/cupons")
+@CrossOrigin(origins = "*")
 public class CupomController {
 
     private final CupomDAO dao = new CupomDAO();
@@ -19,48 +19,39 @@ public class CupomController {
     public ResponseEntity<String> adicionar(@RequestBody Cupom cupom) {
         try {
             dao.addCupom(cupom);
-            return ResponseEntity.status(201).body("Cupom cadastrado com sucesso!");
+            return ResponseEntity.status(201).body("Cupom adicionado com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.internalServerError().body("Erro ao cadastrar cupom: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao adicionar cupom: " + e.getMessage());
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<Cupom>> listarTodos() {
+    @GetMapping("/{numeroCompra}")
+    public ResponseEntity<Cupom> buscarPorCompra(@PathVariable int numeroCompra) {
         try {
-            return ResponseEntity.ok(dao.getAll());
-        } catch (SQLException e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @GetMapping("/{codigo}")
-    public ResponseEntity<Cupom> buscar(@PathVariable int codigo) {
-        try {
-            Cupom cupom = dao.getByCodigo(codigo);
+            Cupom cupom = dao.getCupomByCompra(numeroCompra);
             return (cupom != null) ? ResponseEntity.ok(cupom) : ResponseEntity.notFound().build();
         } catch (SQLException e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    @PutMapping
-    public ResponseEntity<String> atualizar(@RequestBody Cupom cupom) {
+    @GetMapping
+    public ResponseEntity<List<Cupom>> listarTodos() {
         try {
-            dao.update(cupom);
-            return ResponseEntity.ok("Cupom atualizado com sucesso!");
+            return ResponseEntity.ok(dao.getAllCupons());
         } catch (SQLException e) {
-            return ResponseEntity.internalServerError().body("Erro ao atualizar cupom: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
         }
     }
 
-    @DeleteMapping("/{codigo}")
-    public ResponseEntity<String> deletar(@PathVariable int codigo) {
+
+    @DeleteMapping("/{numeroCompra}")
+    public ResponseEntity<String> deletar(@PathVariable int numeroCompra) {
         try {
-            dao.delete(codigo);
-            return ResponseEntity.ok("Cupom excluído com sucesso!");
+            dao.deleteCupom(numeroCompra);
+            return ResponseEntity.ok("Cupom deletado com sucesso!");
         } catch (SQLException e) {
-            return ResponseEntity.internalServerError().body("Erro ao excluir cupom: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao deletar cupom: " + e.getMessage());
         }
     }
 }
